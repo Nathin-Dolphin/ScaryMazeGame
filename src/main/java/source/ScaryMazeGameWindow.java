@@ -30,7 +30,7 @@ import source.utility.SimpleFrame;
 /**
  * @author Nathin Wascher
  */
-public class SMG_Window implements DocumentListener {
+public class ScaryMazeGameWindow implements DocumentListener {
     private static final SimpleFrame FRAME = new SimpleFrame("ScaryMazeGame", "Spooky Maze");
 
     private static final MazeGenerator MAZE_GEN = new MazeGenerator();
@@ -54,7 +54,7 @@ public class SMG_Window implements DocumentListener {
     /**
      * 
      */
-    public SMG_Window() {
+    public ScaryMazeGameWindow() {
         playerAI = new PlayerAI();
         // monsterAI = new MonsterAI();
 
@@ -72,8 +72,9 @@ public class SMG_Window implements DocumentListener {
         } while (maze[maze.length - 2][maze[0].length - 1].equals(MazeDetection.WALL)
                 && maze[maze.length - 1][maze[0].length - 2].equals(MazeDetection.WALL));
 
-        playerAI.initializePlayerAI(MAZE_GEN.getStartLocation(), maze);
-        // monsterAI.initializeMonsterAI(mazeGen.getExitLocation(), maze);
+        playerAI.initializePlayerAI(MAZE_GEN.getStartLocation());
+        // have the monster initially spawn next to the exit
+        // monsterAI.initializeMonsterAI(mazeGen.getExitLocation());
 
         printMaze();
     }
@@ -82,10 +83,10 @@ public class SMG_Window implements DocumentListener {
         mazeString = "";
         System.out.print("\n");
 
-        for (int i = 0; i < maze.length; i++) {
-            for (int h = 0; h < maze[0].length; h++) {
-                System.out.print(maze[i][h] + "");
-                mazeString += maze[i][h] + "";
+        for (int h = 0; h < maze[0].length; h++) {
+            for (int w = 0; w < maze.length; w++) {
+                System.out.print(maze[w][h] + "");
+                mazeString += maze[w][h] + "";
             }
             System.out.print("\n");
             mazeString += "\n";
@@ -123,7 +124,7 @@ public class SMG_Window implements DocumentListener {
 
     private void startGame() {
         executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleAtFixedRate(SMG_Window::monsterUpdate, 1, 1, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(ScaryMazeGameWindow::monsterUpdate, 1, 1, TimeUnit.SECONDS);
     }
 
     private static void gameUpdate() {
@@ -131,9 +132,6 @@ public class SMG_Window implements DocumentListener {
             executorService.shutdown();
 
         } else {
-            // playerAI.maze = maze;
-            // monsterAI.setMaze(maze);
-
             textArea.setText(printMaze());
         }
         System.out.println("game updated");
@@ -146,20 +144,26 @@ public class SMG_Window implements DocumentListener {
     }
 
     private void playerUpdate(KeyEvent k) {
-        if (k.getKeyCode() == KeyEvent.VK_UP) {
-            if (playerAI.moveUp()) {
-                // maze = playerAI.maze;
+        if (k.getKeyCode() == KeyEvent.VK_UP || k.getKeyCode() == KeyEvent.VK_W) { // North
+            if (playerAI.moveCharacter(MazeDetection.PLAYER, MazeDetection.NORTH)) {
+                gameUpdate();
+            }
+            // check if space is exit here?????
+
+        } else if (k.getKeyCode() == KeyEvent.VK_LEFT || k.getKeyCode() == KeyEvent.VK_A) { // West
+            if (playerAI.moveCharacter(MazeDetection.PLAYER, MazeDetection.WEST)) {
                 gameUpdate();
             }
 
-        } else if (k.getKeyCode() == KeyEvent.VK_LEFT) {
-            return;
+        } else if (k.getKeyCode() == KeyEvent.VK_DOWN || k.getKeyCode() == KeyEvent.VK_S) { // South
+            if (playerAI.moveCharacter(MazeDetection.PLAYER, MazeDetection.SOUTH)) {
+                gameUpdate();
+            }
 
-        } else if (k.getKeyCode() == KeyEvent.VK_DOWN) {
-            return;
-
-        } else if (k.getKeyCode() == KeyEvent.VK_RIGHT) {
-            return;
+        } else if (k.getKeyCode() == KeyEvent.VK_RIGHT || k.getKeyCode() == KeyEvent.VK_D) { // East
+            if (playerAI.moveCharacter(MazeDetection.PLAYER, MazeDetection.EAST)) {
+                gameUpdate();
+            }
 
         }
     }

@@ -13,7 +13,7 @@ package source;
  * <p>
  * 
  * @author Nathin Wascher
- * @version v0.1 - March 14, 2021
+ * @version v0.1.1 - 16th of March, 2021
  */
 public final class ScaryMazeGame {
 
@@ -22,6 +22,6 @@ public final class ScaryMazeGame {
 
     public static void main(String[] args) {
         System.out.println("Executing Program (ScaryMazeGame). . .\n");
-        new SMG_Window();
+        new ScaryMazeGameWindow();
     }
 }

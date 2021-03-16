@@ -17,13 +17,7 @@ public class MonsterAI extends MazeDetection {
     public MonsterAI() {
     }
 
-    public void initializeMonsterAI(OrderedPair monsterLocation, String[][] maze) {
+    public void initializeMonsterAI(OrderedPair monsterLocation) {
         setCharacterLocation(monsterLocation);
-        // setMaze(maze);
-    }
-
-    public boolean moveMonster() {
-
-        return false;
     }
 }

@@ -18,11 +18,12 @@ import source.utility.RandomGen;
 public class MazeGenerator extends MazeDetection {
     private static final RandomGen GEN = new RandomGen();
 
+    // Put the these in MazeDetection ???? maybe
     private static final int MAZE_HEIGHT = 10;
     private static final int MAZE_WIDTH = 30;
 
     private static final OrderedPair START_POS = new OrderedPair(0, 0);
-    private static final OrderedPair EXIT_POS = new OrderedPair(MAZE_HEIGHT - 1, MAZE_WIDTH - 1);
+    private static final OrderedPair EXIT_POS = new OrderedPair(MAZE_WIDTH - 1, MAZE_HEIGHT - 1);
 
     private static LinkedList<String> chanceList;
 
@@ -30,10 +31,10 @@ public class MazeGenerator extends MazeDetection {
 
     private static OrderedPair currentPos;
 
-    private static String currentPlacementPos = "E";
+    private static String currentPlacementPos;
 
     public MazeGenerator() {
-        mgMaze = new String[MAZE_HEIGHT][MAZE_WIDTH];
+        mgMaze = new String[MAZE_WIDTH][MAZE_HEIGHT];
     }
 
     public OrderedPair getStartLocation() {
@@ -49,8 +50,8 @@ public class MazeGenerator extends MazeDetection {
      * @return
      */
     public String[][] generateMaze() {
-        for (int i = 0; i < MAZE_HEIGHT; i++) {
-            for (int h = 0; h < MAZE_WIDTH; h++) {
+        for (int i = 0; i < MAZE_WIDTH; i++) {
+            for (int h = 0; h < MAZE_HEIGHT; h++) {
                 mgMaze[i][h] = WALL;
             }
         }
@@ -58,7 +59,7 @@ public class MazeGenerator extends MazeDetection {
         createMainPath();
 
         mgMaze[0][0] = PLAYER;
-        mgMaze[MAZE_HEIGHT - 1][MAZE_WIDTH - 1] = EXIT;
+        mgMaze[MAZE_WIDTH - 1][MAZE_HEIGHT - 1] = EXIT;
         setMaze(mgMaze);
 
         return mgMaze;
@@ -70,15 +71,21 @@ public class MazeGenerator extends MazeDetection {
         currentPos = START_POS;
         int index = 0;
 
+        if (GEN.boolGen()) {
+            currentPlacementPos = "E";
+        } else {
+            currentPlacementPos = "S";
+        }
+
         int failSafe = 0;
-        while (!currentPos.equals(EXIT_POS) && failSafe < (MAZE_WIDTH * MAZE_HEIGHT) / 4) {
+        while (!currentPos.equals(EXIT_POS) && failSafe < (MAZE_HEIGHT * MAZE_WIDTH) / 4) {
             setMaze(mgMaze);
             failSafe++;
 
             possibleHallwayPlacementCheck();
 
             if (chanceList.size() == 0) {
-                failSafe = MAZE_WIDTH * MAZE_HEIGHT;
+                failSafe = MAZE_HEIGHT * MAZE_WIDTH;
                 break;
             }
 
@@ -88,33 +95,33 @@ public class MazeGenerator extends MazeDetection {
             switch (currentPlacementPos) {
 
             case "N":
-                if (locationCheck(currentPos, new int[][] { { 0, -1 }, { 1, -1 }, { 0, -1 - 1 }, { -1, -1 } }, WALL)) {
-                    changeToHallway(0, -1);
+                if (locationCheck(currentPos, NORTH_CHECK, WALL)) {
+                    changeToHallway(NORTH);
                 }
                 break;
 
             case "W":
-                if (locationCheck(currentPos, new int[][] { { -1, 0 }, { -1, 1 }, { -1 - 1, 0 }, { -1, -1 } }, WALL)) {
-                    changeToHallway(-1, 0);
+                if (locationCheck(currentPos, WEST_CHECK, WALL)) {
+                    changeToHallway(WEST);
                 }
                 break;
 
             case "S":
-                if (locationCheck(currentPos, new int[][] { { 0, 1 }, { 1, 1 }, { 0, 1 + 1 }, { -1, 1 } }, WALL)) {
-                    changeToHallway(0, 1);
+                if (locationCheck(currentPos, SOUTH_CHECK, WALL)) {
+                    changeToHallway(SOUTH);
                 }
                 break;
 
             case "E":
-                if (locationCheck(currentPos, new int[][] { { 1, 0 }, { 1, 1 }, { 1 + 1, 0 }, { 1, -1 } }, WALL)) {
-                    changeToHallway(1, 0);
+                if (locationCheck(currentPos, EAST_CHECK, WALL)) {
+                    changeToHallway(EAST);
                 }
                 break;
             default:
             }
         }
 
-        if (failSafe >= (MAZE_WIDTH * MAZE_HEIGHT) / 4) {
+        if (failSafe >= (MAZE_HEIGHT * MAZE_WIDTH) / 4) {
             System.out.println("\nERROR: " + failSafe + ": FAILSAFE LIMIT REACHED");
         }
     }
@@ -122,16 +129,19 @@ public class MazeGenerator extends MazeDetection {
     // private void createPathBranch() {
     // }
 
-    private void changeToHallway(int horizontalIncrement, int verticalIncrement) {
-        currentPos = currentPos.add(horizontalIncrement, verticalIncrement);
+    private void changeToHallway(OrderedPair direction) {
+        currentPos = currentPos.add(direction);
         mgMaze[currentPos.getX()][currentPos.getY()] = HALLWAY;
     }
 
     private void possibleHallwayPlacementCheck() {
         chanceList.clear();
 
+        // The first 'if' statement detects if the location to chack is inside the
+        // boundaries of the maze. The second 'if' checks if it is a wall and if so add
+        // the appropriate direction to the 'chanceList'
         if (0 <= currentPos.getY() - 1) {
-            if (locationCheck(currentPos, 0, -1, WALL)) { // North
+            if (locationCheck(currentPos, NORTH, WALL)) { // North
                 for (int i = 0; i < 2; i++) {
                     chanceList.add("N");
                 }
@@ -141,7 +151,7 @@ public class MazeGenerator extends MazeDetection {
             }
         }
         if (0 <= currentPos.getX() - 1) {
-            if (locationCheck(currentPos, -1, 0, WALL)) { // West
+            if (locationCheck(currentPos, WEST, WALL)) { // West
                 for (int i = 0; i < 2; i++) {
                     chanceList.add("W");
                 }
@@ -150,8 +160,8 @@ public class MazeGenerator extends MazeDetection {
                 }
             }
         }
-        if (currentPos.getY() + 1 < MAZE_WIDTH) {
-            if (locationCheck(currentPos, 0, 1, WALL)) { // South
+        if (currentPos.getY() + 1 < MAZE_HEIGHT) {
+            if (locationCheck(currentPos, SOUTH, WALL)) { // South
                 chanceList.add("S");
 
                 for (int i = 0; i < 2; i++) {
@@ -162,8 +172,8 @@ public class MazeGenerator extends MazeDetection {
                 }
             }
         }
-        if (currentPos.getX() + 1 < MAZE_HEIGHT) {
-            if (locationCheck(currentPos, 1, 0, WALL)) { // East
+        if (currentPos.getX() + 1 < MAZE_WIDTH) {
+            if (locationCheck(currentPos, EAST, WALL)) { // East
                 chanceList.add("E");
 
                 for (int i = 0; i < 2; i++) {

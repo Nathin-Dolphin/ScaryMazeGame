@@ -19,6 +19,10 @@ public class PlayerAI extends MazeDetection {
     public PlayerAI() {
     }
 
+    public void initializePlayerAI(OrderedPair playerLocation) {
+        setCharacterLocation(playerLocation);
+    }
+
     public boolean isDead() {
         return isDead;
     }
@@ -33,22 +37,5 @@ public class PlayerAI extends MazeDetection {
 
     public void setReachedExit(boolean reachedExit) {
         PlayerAI.reachedExit = reachedExit;
-    }
-
-    public void initializePlayerAI(OrderedPair playerLocation, String[][] maze) {
-        setCharacterLocation(playerLocation);
-        // setMaze(maze);
-    }
-
-    /**
-     * 
-     * @return
-     */
-    public boolean moveUp() {
-        if (locationCheck(getCharacterLocation(), 0, -1, HALLWAY)) {
-
-            return true;
-        }
-        return false;
     }
 }
