@@ -1,5 +1,10 @@
 ScaryMazeGame
 
+v0.2
+ - Added a prototype fog of war to the player
+ - Most static and final variables have been moved to the class MazeVars
+ - Removed some redundancies in generating the maze
+
 v0.1.1
  - The player character is now controllable with the 'WASD' and arrow controls
  - Optimized some variables and methods

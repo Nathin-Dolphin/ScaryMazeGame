@@ -35,6 +35,8 @@ public class ScaryMazeGameWindow implements DocumentListener {
 
     private static final MazeGenerator MAZE_GEN = new MazeGenerator();
 
+    private static final int FAILSAFE_NUM = 100;
+
     private static PlayerAI playerAI;
 
     // private static MonsterAI monsterAI;
@@ -46,10 +48,6 @@ public class ScaryMazeGameWindow implements DocumentListener {
     private static KeyListener keyListener;
 
     private static JTextArea textArea;
-
-    private static String[][] maze;
-
-    private static String mazeString;
 
     /**
      * 
@@ -66,33 +64,24 @@ public class ScaryMazeGameWindow implements DocumentListener {
     }
 
     private void generateMaze() {
-        do {
-            maze = MAZE_GEN.generateMaze();
+        int[] westOfExit = new int[] { MazeVars.MAZE_WIDTH - 2, MazeVars.MAZE_HEIGHT - 1 };
+        int[] northOfExit = new int[] { MazeVars.MAZE_WIDTH - 1, MazeVars.MAZE_HEIGHT - 2 };
+        int failSafe = 0;
 
-        } while (maze[maze.length - 2][maze[0].length - 1].equals(MazeDetection.WALL)
-                && maze[maze.length - 1][maze[0].length - 2].equals(MazeDetection.WALL));
+        do {
+            MAZE_GEN.generateMaze();
+            failSafe++;
+
+            // TODO: make the while loop more readable
+        } while (MAZE_GEN.getMaze()[westOfExit[0]][westOfExit[1]].equals(MazeVars.WALL)
+                && MAZE_GEN.getMaze()[northOfExit[0]][northOfExit[1]].equals(MazeVars.WALL)
+                && failSafe <= FAILSAFE_NUM);
 
         playerAI.initializePlayerAI(MAZE_GEN.getStartLocation());
         // have the monster initially spawn next to the exit
         // monsterAI.initializeMonsterAI(mazeGen.getExitLocation());
 
-        printMaze();
-    }
-
-    private static String printMaze() {
-        mazeString = "";
-        System.out.print("\n");
-
-        for (int h = 0; h < maze[0].length; h++) {
-            for (int w = 0; w < maze.length; w++) {
-                System.out.print(maze[w][h] + "");
-                mazeString += maze[w][h] + "";
-            }
-            System.out.print("\n");
-            mazeString += "\n";
-        }
-
-        return mazeString;
+        System.out.println(MAZE_GEN.toString());
     }
 
     private void implementListeners() {
@@ -110,7 +99,7 @@ public class ScaryMazeGameWindow implements DocumentListener {
     }
 
     private void setUpFrame() {
-        textArea = new JTextArea(mazeString);
+        textArea = new JTextArea(playerAI.getMazeWithFogOfWar());
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 5 * 3));
 
         // textArea.getDocument().addDocumentListener(this);
@@ -132,7 +121,8 @@ public class ScaryMazeGameWindow implements DocumentListener {
             executorService.shutdown();
 
         } else {
-            textArea.setText(printMaze());
+            textArea.setText(playerAI.getMazeWithFogOfWar());
+            System.out.println(playerAI.toString());
         }
         System.out.println("game updated");
     }
@@ -145,25 +135,26 @@ public class ScaryMazeGameWindow implements DocumentListener {
 
     private void playerUpdate(KeyEvent k) {
         if (k.getKeyCode() == KeyEvent.VK_UP || k.getKeyCode() == KeyEvent.VK_W) { // North
-            if (playerAI.moveCharacter(MazeDetection.PLAYER, MazeDetection.NORTH)) {
+            if (playerAI.moveCharacter(MazeVars.PLAYER, MazeVars.NORTH)) {
                 gameUpdate();
             }
-            // check if space is exit here?????
 
         } else if (k.getKeyCode() == KeyEvent.VK_LEFT || k.getKeyCode() == KeyEvent.VK_A) { // West
-            if (playerAI.moveCharacter(MazeDetection.PLAYER, MazeDetection.WEST)) {
+            if (playerAI.moveCharacter(MazeVars.PLAYER, MazeVars.WEST)) {
                 gameUpdate();
             }
 
         } else if (k.getKeyCode() == KeyEvent.VK_DOWN || k.getKeyCode() == KeyEvent.VK_S) { // South
-            if (playerAI.moveCharacter(MazeDetection.PLAYER, MazeDetection.SOUTH)) {
+            if (playerAI.moveCharacter(MazeVars.PLAYER, MazeVars.SOUTH)) {
                 gameUpdate();
             }
+            // TODO: check if space is exit here?????
 
         } else if (k.getKeyCode() == KeyEvent.VK_RIGHT || k.getKeyCode() == KeyEvent.VK_D) { // East
-            if (playerAI.moveCharacter(MazeDetection.PLAYER, MazeDetection.EAST)) {
+            if (playerAI.moveCharacter(MazeVars.PLAYER, MazeVars.EAST)) {
                 gameUpdate();
             }
+            // TODO: check if space is exit here?????
 
         }
     }

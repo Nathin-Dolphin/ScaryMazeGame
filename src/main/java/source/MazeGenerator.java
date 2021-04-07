@@ -18,31 +18,24 @@ import source.utility.RandomGen;
 public class MazeGenerator extends MazeDetection {
     private static final RandomGen GEN = new RandomGen();
 
-    // Put the these in MazeDetection ???? maybe
-    private static final int MAZE_HEIGHT = 10;
-    private static final int MAZE_WIDTH = 30;
+    private static final int SIDE_PATH_CHANCE = 15;
 
-    private static final OrderedPair START_POS = new OrderedPair(0, 0);
-    private static final OrderedPair EXIT_POS = new OrderedPair(MAZE_WIDTH - 1, MAZE_HEIGHT - 1);
+    private static LinkedList<LinkedList<String>> directionChanceList;
 
-    private static LinkedList<String> chanceList;
+    private static LinkedList<OrderedPair> currentPosList;
 
     private static String[][] mgMaze;
 
-    private static OrderedPair currentPos;
-
-    private static String currentPlacementPos;
-
     public MazeGenerator() {
-        mgMaze = new String[MAZE_WIDTH][MAZE_HEIGHT];
+        mgMaze = new String[MazeVars.MAZE_WIDTH][MazeVars.MAZE_HEIGHT];
     }
 
     public OrderedPair getStartLocation() {
-        return START_POS;
+        return MazeVars.START_POS;
     }
 
     public OrderedPair getExitLocation() {
-        return EXIT_POS;
+        return MazeVars.EXIT_POS;
     }
 
     /**
@@ -50,139 +43,201 @@ public class MazeGenerator extends MazeDetection {
      * @return
      */
     public String[][] generateMaze() {
-        for (int i = 0; i < MAZE_WIDTH; i++) {
-            for (int h = 0; h < MAZE_HEIGHT; h++) {
-                mgMaze[i][h] = WALL;
+        for (int w = 0; w < MazeVars.MAZE_WIDTH; w++) {
+            for (int h = 0; h < MazeVars.MAZE_HEIGHT; h++) {
+                mgMaze[w][h] = MazeVars.WALL;
             }
         }
 
+        initializeLists();
         createMainPath();
 
-        mgMaze[0][0] = PLAYER;
-        mgMaze[MAZE_WIDTH - 1][MAZE_HEIGHT - 1] = EXIT;
+        mgMaze[0][0] = MazeVars.PLAYER;
+        mgMaze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1] = MazeVars.EXIT;
         setMaze(mgMaze);
 
         return mgMaze;
     }
 
-    //
-    private void createMainPath() {
-        chanceList = new LinkedList<String>();
-        currentPos = START_POS;
-        int index = 0;
+    private void initializeLists() {
+        directionChanceList = new LinkedList<LinkedList<String>>();
+        directionChanceList.add(new LinkedList<String>());
 
-        if (GEN.boolGen()) {
-            currentPlacementPos = "E";
-        } else {
-            currentPlacementPos = "S";
-        }
+        currentPosList = new LinkedList<OrderedPair>();
+        currentPosList.add(MazeVars.START_POS);
+    }
+
+    private void createMainPath() {
+        LinkedList<String> directionChance;
+        String direction;
 
         int failSafe = 0;
-        while (!currentPos.equals(EXIT_POS) && failSafe < (MAZE_HEIGHT * MAZE_WIDTH) / 4) {
-            setMaze(mgMaze);
-            failSafe++;
+        int index = 0;
 
-            possibleHallwayPlacementCheck();
+        while (!currentPosList.contains(MazeVars.EXIT_POS) && failSafe < (MazeVars.MAZE_HEIGHT * MazeVars.MAZE_WIDTH)) {
+            for (int path = 0; path < currentPosList.size(); path++) {
+                setMaze(mgMaze);
+                // printMaze();
+                failSafe++;
 
-            if (chanceList.size() == 0) {
-                failSafe = MAZE_HEIGHT * MAZE_WIDTH;
-                break;
-            }
+                possibleHallwayPlacementCheck(path);
+                directionChance = directionChanceList.get(path);
 
-            index = GEN.intGen(0, chanceList.size() - 1);
-            currentPlacementPos = chanceList.get(index);
+                if (directionChance.size() == 0) {
+                    System.out.println("\n\tWARNING: PATH CAN NOT CONTINUE");
 
-            switch (currentPlacementPos) {
+                    currentPosList.remove(path);
+                    directionChanceList.remove(path);
 
-            case "N":
-                if (locationCheck(currentPos, NORTH_CHECK, WALL)) {
-                    changeToHallway(NORTH);
+                    if (directionChanceList.size() == 0) {
+                        failSafe = (MazeVars.MAZE_HEIGHT * MazeVars.MAZE_WIDTH) * 2;
+                    }
+
+                    break;
                 }
-                break;
 
-            case "W":
-                if (locationCheck(currentPos, WEST_CHECK, WALL)) {
-                    changeToHallway(WEST);
-                }
-                break;
+                index = GEN.intGen(0, directionChance.size() - 1);
+                direction = directionChance.get(index);
 
-            case "S":
-                if (locationCheck(currentPos, SOUTH_CHECK, WALL)) {
-                    changeToHallway(SOUTH);
-                }
-                break;
+                switch (direction) {
 
-            case "E":
-                if (locationCheck(currentPos, EAST_CHECK, WALL)) {
-                    changeToHallway(EAST);
+                case "N":
+                    changeToHallway(MazeVars.NORTH, path);
+                    break;
+
+                case "W":
+                    changeToHallway(MazeVars.WEST, path);
+                    break;
+
+                case "S":
+                    changeToHallway(MazeVars.SOUTH, path);
+                    break;
+
+                case "E":
+                    changeToHallway(MazeVars.EAST, path);
+                    break;
+
+                default:
+                    System.out.println("\nERROR: \'" + direction + "\' IS NOT A VALID DIRECTION ");
                 }
-                break;
-            default:
+
+                // Disabled
+                if (GEN.intGen(0, SIDE_PATH_CHANCE) == -1) {
+                    createSidePath(path);
+                }
             }
         }
 
-        if (failSafe >= (MAZE_HEIGHT * MAZE_WIDTH) / 4) {
+        if (failSafe >= (MazeVars.MAZE_HEIGHT * MazeVars.MAZE_WIDTH)) {
             System.out.println("\nERROR: " + failSafe + ": FAILSAFE LIMIT REACHED");
         }
     }
 
-    // private void createPathBranch() {
-    // }
+    private void createSidePath(int path) {
+        int pathNum = path;
+        OrderedPair currentPos = currentPosList.get(pathNum);
+        LinkedList<String> directionChance = directionChanceList.get(pathNum);
+        String direction;
 
-    private void changeToHallway(OrderedPair direction) {
-        currentPos = currentPos.add(direction);
-        mgMaze[currentPos.getX()][currentPos.getY()] = HALLWAY;
+        currentPosList.add(currentPos);
+        directionChanceList.add(directionChance);
+
+        pathNum++;
+
+        possibleHallwayPlacementCheck(pathNum);
+        directionChance = directionChanceList.get(pathNum);
+
+        if (directionChance.size() == 0) {
+            System.out.println("\n\tWARNING: SIDE PATH IS UNABLE TO BE CREATED");
+
+            currentPosList.removeLast();
+            directionChanceList.removeLast();
+
+            return;
+        }
+
+        int index = GEN.intGen(0, directionChance.size() - 1);
+        direction = directionChance.get(index);
+
+        switch (direction) {
+
+        case "N":
+            changeToHallway(MazeVars.NORTH, pathNum);
+            break;
+
+        case "W":
+            changeToHallway(MazeVars.WEST, pathNum);
+            break;
+
+        case "S":
+            changeToHallway(MazeVars.SOUTH, pathNum);
+            break;
+
+        case "E":
+            changeToHallway(MazeVars.EAST, pathNum);
+            break;
+
+        default:
+            System.out.println("\nERROR: \'" + direction + "\' IS NOT A VALID DIRECTION ");
+        }
     }
 
-    private void possibleHallwayPlacementCheck() {
-        chanceList.clear();
+    private void changeToHallway(OrderedPair direction, int path) {
+        OrderedPair currentPos = currentPosList.get(path);
+        currentPos = currentPos.add(direction);
+
+        currentPosList.remove(path);
+        currentPosList.add(path, currentPos);
+
+        mgMaze[currentPos.getX()][currentPos.getY()] = MazeVars.HALLWAY;
+    }
+
+    private void possibleHallwayPlacementCheck(int path) {
+        OrderedPair currentPos = currentPosList.get(path);
+        LinkedList<String> directionChance = new LinkedList<String>();
 
         // The first 'if' statement detects if the location to chack is inside the
-        // boundaries of the maze. The second 'if' checks if it is a wall and if so add
+        // boundaries of the maze. The second 'if' checks if it is a MazeVars.wall and
+        // if so add
         // the appropriate direction to the 'chanceList'
         if (0 <= currentPos.getY() - 1) {
-            if (locationCheck(currentPos, NORTH, WALL)) { // North
+            if (locationCheck(currentPos, MazeVars.NORTH_CHECK, MazeVars.WALL)) { // North
                 for (int i = 0; i < 2; i++) {
-                    chanceList.add("N");
-                }
-                if ("N".equals(currentPlacementPos)) {
-                    chanceList.add("N");
+                    directionChance.add("N");
                 }
             }
         }
         if (0 <= currentPos.getX() - 1) {
-            if (locationCheck(currentPos, WEST, WALL)) { // West
+            if (locationCheck(currentPos, MazeVars.WEST_CHECK, MazeVars.WALL)) { // West
                 for (int i = 0; i < 2; i++) {
-                    chanceList.add("W");
-                }
-                if ("W".equals(currentPlacementPos)) {
-                    chanceList.add("W");
+                    directionChance.add("W");
                 }
             }
         }
-        if (currentPos.getY() + 1 < MAZE_HEIGHT) {
-            if (locationCheck(currentPos, SOUTH, WALL)) { // South
-                chanceList.add("S");
+        if (currentPos.getY() + 1 < MazeVars.MAZE_HEIGHT) {
+            if (locationCheck(currentPos, MazeVars.SOUTH_CHECK, MazeVars.WALL)) { // South
+                directionChance.add("S");
 
                 for (int i = 0; i < 2; i++) {
-                    chanceList.add("S");
-                }
-                if ("S".equals(currentPlacementPos)) {
-                    chanceList.add("S");
+                    directionChance.add("S");
                 }
             }
         }
-        if (currentPos.getX() + 1 < MAZE_WIDTH) {
-            if (locationCheck(currentPos, EAST, WALL)) { // East
-                chanceList.add("E");
+        if (currentPos.getX() + 1 < MazeVars.MAZE_WIDTH) {
+            if (locationCheck(currentPos, MazeVars.EAST_CHECK, MazeVars.WALL)) { // East
+                directionChance.add("E");
 
                 for (int i = 0; i < 2; i++) {
-                    chanceList.add("E");
-                }
-                if ("E".equals(currentPlacementPos)) {
-                    chanceList.add("E");
+                    directionChance.add("E");
                 }
             }
         }
+
+        directionChanceList.remove(path);
+        directionChanceList.add(path, directionChance);
+    }
+
+    public String toString() {
+        return super.toString();
     }
 }
