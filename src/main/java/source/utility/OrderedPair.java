@@ -16,7 +16,7 @@ package source.utility;
  * <p>
  * 
  * @author Nathin Wascher
- * @version v1.0 - March 14, 2021
+ * @version v1.0.1 - April 6, 2021
  */
 public class OrderedPair {
     private int x;
@@ -52,6 +52,13 @@ public class OrderedPair {
         return false;
     }
 
+    /**
+     * 
+     * This method does not directly change the values of either {@code OrderedPair}.
+     * 
+     * @param orderedPair
+     * @return
+     */
     public OrderedPair add(OrderedPair orderedPair) {
         return add(orderedPair.getX(), orderedPair.getY());
     }
