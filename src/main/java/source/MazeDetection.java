@@ -7,7 +7,12 @@
 
 package source;
 
+import java.awt.Color;
+import java.awt.GridLayout;
+
 import java.util.LinkedList;
+
+import javax.swing.JPanel;
 
 import source.utility.OrderedPair;
 
@@ -16,11 +21,14 @@ import source.utility.OrderedPair;
  */
 public class MazeDetection {
 
-    private static String[][] maze;
+    private static final OrderedPair[] DIRECTIONS_LIST = new OrderedPair[] { MazeVars.EAST, MazeVars.NORTH, MazeVars.WEST,
+            MazeVars.SOUTH, MazeVars.EAST, MazeVars.NORTH };
 
-    private LinkedList<String> testList;
+    private static MazeTile[][] maze;
 
-    private String[][] mazeFOW;
+    private static LinkedList<OrderedPair> tilesVisibleToPlayer;
+
+    private static JPanel mazePanel;
 
     private OrderedPair characterLocation;
 
@@ -49,7 +57,7 @@ public class MazeDetection {
      * 
      * @return
      */
-    public String[][] getMaze() {
+    public MazeTile[][] getMaze() {
         return maze;
     }
 
@@ -57,20 +65,39 @@ public class MazeDetection {
      * 
      * @param maze
      */
-    public void setMaze(String[][] maze) {
+    public void setMaze(MazeTile[][] maze) {
         MazeDetection.maze = maze;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public boolean isValidMaze() {
+        int[] westOfExit = new int[] { MazeVars.MAZE_WIDTH - 2, MazeVars.MAZE_HEIGHT - 1 };
+        int[] northOfExit = new int[] { MazeVars.MAZE_WIDTH - 1, MazeVars.MAZE_HEIGHT - 2 };
+
+        char a = maze[westOfExit[0]][westOfExit[1]].getTileType();
+        char b = maze[northOfExit[0]][northOfExit[1]].getTileType();
+
+        // return false if 'a' and 'b' are a wall
+        if (Character.compare(MazeVars.WALL, a) == 0 && Character.compare(MazeVars.WALL, b) == 0) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * 
      * @param currentPos
      * @param area
-     * @param symbol
+     * @param tileType
      * @return
      */
-    public boolean locationCheck(OrderedPair currentPos, OrderedPair[] area, String symbol) {
+    public boolean locationCheck(OrderedPair currentPos, OrderedPair[] area, char tileType) {
         for (int i = 0; i < area.length; i++) {
-            if (!locationCheck(currentPos, area[i], symbol)) {
+            if (!locationCheck(currentPos, area[i], tileType)) {
                 if (!outOfBounds) {
                     return false;
                 }
@@ -83,15 +110,15 @@ public class MazeDetection {
      * 
      * @param currentPos
      * @param direction
-     * @param symbol
+     * @param tileType
      * @return
      */
-    public boolean locationCheck(OrderedPair currentPos, OrderedPair direction, String symbol) {
+    public boolean locationCheck(OrderedPair currentPos, OrderedPair direction, char tileType) {
         outOfBounds = false;
 
         try {
             OrderedPair newPosition = currentPos.add(direction);
-            if (maze[newPosition.getX()][newPosition.getY()].equals(symbol)) {
+            if (maze[newPosition.getX()][newPosition.getY()].compareTiles(tileType)) {
                 return true;
             }
         } catch (IndexOutOfBoundsException i) {
@@ -105,13 +132,13 @@ public class MazeDetection {
      * @param currentPos
      * @param xAxis
      * @param yAxis
-     * @param symbol
+     * @param tileType
      * @return
      */
-    public boolean locationCheck(OrderedPair currentPos, int xAxis, int yAxis, String symbol) {
+    public boolean locationCheck(OrderedPair currentPos, int xAxis, int yAxis, char tileType) {
         try {
             OrderedPair newPosition = currentPos.add(xAxis, yAxis);
-            if (maze[newPosition.getX()][newPosition.getY()].equals(symbol)) {
+            if (maze[newPosition.getX()][newPosition.getY()].compareTiles(tileType)) {
                 return true;
             }
         } catch (IndexOutOfBoundsException i) {
@@ -121,16 +148,16 @@ public class MazeDetection {
 
     /**
      * 
-     * @param character
+     * @param tileType
      * @param direction
      * @return
      */
-    public boolean moveCharacter(String character, OrderedPair direction) {
+    public boolean moveCharacter(char tileType, OrderedPair direction) {
         if (locationCheck(characterLocation, direction, MazeVars.HALLWAY)) {
 
-            maze[characterLocation.getX()][characterLocation.getY()] = MazeVars.HALLWAY;
+            maze[characterLocation.getX()][characterLocation.getY()].setTileType(MazeVars.HALLWAY);
             characterLocation = characterLocation.add(direction);
-            maze[characterLocation.getX()][characterLocation.getY()] = character;
+            maze[characterLocation.getX()][characterLocation.getY()].setTileType(tileType);
 
             return true;
         }
@@ -141,107 +168,85 @@ public class MazeDetection {
      * 
      * @return
      */
-    public String getMazeWithFogOfWar() {
-        mazeFOW = new String[MazeVars.MAZE_WIDTH][MazeVars.MAZE_HEIGHT];
+    public JPanel initializeFogOfWar() {
+        tilesVisibleToPlayer = new LinkedList<OrderedPair>();
 
-        for (int w = 0; w < MazeVars.MAZE_WIDTH; w++) {
-            for (int h = 0; h < MazeVars.MAZE_HEIGHT; h++) {
-                mazeFOW[w][h] = maze[w][h];
+        // height and width are reversed so the rows and
+        // columns appear correctly on the panel
+        mazePanel = new JPanel(new GridLayout(MazeVars.MAZE_HEIGHT, MazeVars.MAZE_WIDTH));
+        mazePanel.setBackground(Color.GRAY);
+
+        for (int h = 0; h < MazeVars.MAZE_HEIGHT; h++) {
+            for (int w = 0; w < MazeVars.MAZE_WIDTH; w++) {
+                mazePanel.add(maze[w][h]);
             }
         }
 
-        /**
-         * characterVision(MazeVars.NORTH); characterVision(MazeVars.WEST); characterVision(MazeVars.SOUTH);
-         * characterVision(MazeVars.EAST);
-         */
+        updateFogOfWar();
 
-        test(characterLocation, MazeVars.NORTH);
-        test(characterLocation, MazeVars.WEST);
-        test(characterLocation, MazeVars.SOUTH);
-        test(characterLocation, MazeVars.EAST);
-        test2();
+        // for (int z = 0; z < mazePanel.getComponentCount(); z++) {
+        // System.out.println(mazePanel.getComponent(z));
+        // }
 
-        for (int h = 0; h < mazeFOW[0].length; h++) {
-            for (int w = 0; w < mazeFOW.length; w++) {
-                if (mazeFOW[w][h].equals(MazeVars.HALLWAY)) {
-                    mazeFOW[w][h] = MazeVars.WALL;
+        return mazePanel;
+    }
 
-                } else if (mazeFOW[w][h].equals(MazeVars.TEMP_SYMBOL)) {
-                    mazeFOW[w][h] = MazeVars.HALLWAY;
+    /**
+     * 
+     * @return
+     */
+    public void updateFogOfWar() {
+        OrderedPair[] direction = new OrderedPair[3];
+        OrderedPair currentPos;
+        OrderedPair sidePos;
+
+        for (int q = 0; q < tilesVisibleToPlayer.size(); q++) {
+            currentPos = tilesVisibleToPlayer.get(q);
+            maze[currentPos.getX()][currentPos.getY()].setVisibleToPlayer(false);
+        }
+
+        tilesVisibleToPlayer.clear();
+
+        for (int t = 1; t < DIRECTIONS_LIST.length - 1; t++) {
+            currentPos = characterLocation;
+
+            for (int f = 0; f < direction.length; f++) {
+                direction[f] = DIRECTIONS_LIST[f + (t - 1)];
+            }
+
+            while (locationCheck(currentPos, direction[1], MazeVars.HALLWAY) && !outOfBounds) {
+                if (!outOfBounds) { // TODO: Necessary ???
+                    currentPos = currentPos.add(direction[1]);
+                    maze[currentPos.getX()][currentPos.getY()].setVisibleToPlayer(true);
+                    tilesVisibleToPlayer.add(currentPos);
+
+                    if (locationCheck(currentPos, direction[0], MazeVars.HALLWAY)) {
+                        sidePos = currentPos.add(direction[0]);
+                        maze[sidePos.getX()][sidePos.getY()].setVisibleToPlayer(true);
+                        tilesVisibleToPlayer.add(sidePos);
+                    }
+
+                    if (locationCheck(currentPos, direction[2], MazeVars.HALLWAY)) {
+                        sidePos = currentPos.add(direction[2]);
+                        maze[sidePos.getX()][sidePos.getY()].setVisibleToPlayer(true);
+                        tilesVisibleToPlayer.add(sidePos);
+                    }
                 }
             }
         }
-
-        return mazeToString(mazeFOW);
     }
 
-    // private void characterVision(OrderedPair direction) {}
-
-    // TODO: change method name
-    private void test(OrderedPair currentPos, OrderedPair direction) {
-        OrderedPair newPos = currentPos;
-        while (locationCheck(newPos, direction, MazeVars.HALLWAY) && !outOfBounds) {
-            if (!outOfBounds) { // TODO: Necessary ???
-                newPos = newPos.add(direction);
-                mazeFOW[newPos.getX()][newPos.getY()] = MazeVars.TEMP_SYMBOL;
-            }
-        }
-    }
-
-    // TODO: change method name
-    // TODO: can see corners that are not immediately accessable
-    // TODO: show a single unit of MV.hallway stemming from the MV.hallway the character
-    // is in
-    private void test2() {
-        OrderedPair currentPos = characterLocation;
-
-        if (locationCheck(currentPos, MazeVars.NORTH_WEST, MazeVars.HALLWAY)) {
-            currentPos = currentPos.add(MazeVars.NORTH_WEST);
-            mazeFOW[currentPos.getX()][currentPos.getY()] = MazeVars.TEMP_SYMBOL;
-            test(currentPos, MazeVars.NORTH);
-            test(currentPos, MazeVars.WEST);
-        }
-
-        currentPos = characterLocation;
-        if (locationCheck(currentPos, MazeVars.NORTH_EAST, MazeVars.HALLWAY)) {
-            currentPos = currentPos.add(MazeVars.NORTH_EAST);
-            mazeFOW[currentPos.getX()][currentPos.getY()] = MazeVars.TEMP_SYMBOL;
-            test(currentPos, MazeVars.NORTH);
-            test(currentPos, MazeVars.EAST);
-        }
-
-        currentPos = characterLocation;
-        if (locationCheck(currentPos, MazeVars.SOUTH_WEST, MazeVars.HALLWAY)) {
-            currentPos = currentPos.add(MazeVars.SOUTH_WEST);
-            mazeFOW[currentPos.getX()][currentPos.getY()] = MazeVars.TEMP_SYMBOL;
-            test(currentPos, MazeVars.SOUTH);
-            test(currentPos, MazeVars.WEST);
-        }
-
-        currentPos = characterLocation;
-        if (locationCheck(currentPos, MazeVars.SOUTH_EAST, MazeVars.HALLWAY)) {
-            currentPos = currentPos.add(MazeVars.SOUTH_EAST);
-            mazeFOW[currentPos.getX()][currentPos.getY()] = MazeVars.TEMP_SYMBOL;
-            test(currentPos, MazeVars.SOUTH);
-            test(currentPos, MazeVars.EAST);
-        }
-    }
-
-    private String mazeToString(String[][] tempMaze) {
+    @Override
+    public String toString() {
         String mazeString = "";
 
-        for (int h = 0; h < tempMaze[0].length; h++) {
-            for (int w = 0; w < tempMaze.length; w++) {
-                mazeString += tempMaze[w][h] + "";
+        for (int h = 0; h < maze[0].length; h++) {
+            for (int w = 0; w < maze.length; w++) {
+                mazeString += maze[w][h].getTileType() + "";
             }
             mazeString += "\n";
         }
 
         return mazeString;
-    }
-
-    @Override
-    public String toString() {
-        return mazeToString(maze);
     }
 }

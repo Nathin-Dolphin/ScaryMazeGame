@@ -24,10 +24,10 @@ public class MazeGenerator extends MazeDetection {
 
     private static LinkedList<OrderedPair> currentPosList;
 
-    private static String[][] mgMaze;
+    private static MazeTile[][] mgMaze;
 
     public MazeGenerator() {
-        mgMaze = new String[MazeVars.MAZE_WIDTH][MazeVars.MAZE_HEIGHT];
+        mgMaze = new MazeTile[MazeVars.MAZE_WIDTH][MazeVars.MAZE_HEIGHT];
     }
 
     public OrderedPair getStartLocation() {
@@ -40,23 +40,20 @@ public class MazeGenerator extends MazeDetection {
 
     /**
      * 
-     * @return
      */
-    public String[][] generateMaze() {
+    public void generateMaze() {
         for (int w = 0; w < MazeVars.MAZE_WIDTH; w++) {
             for (int h = 0; h < MazeVars.MAZE_HEIGHT; h++) {
-                mgMaze[w][h] = MazeVars.WALL;
+                mgMaze[w][h] = new MazeTile(MazeVars.WALL);
             }
         }
 
         initializeLists();
         createMainPath();
 
-        mgMaze[0][0] = MazeVars.PLAYER;
-        mgMaze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1] = MazeVars.EXIT;
+        mgMaze[0][0].setTileType(MazeVars.PLAYER);
+        mgMaze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setTileType(MazeVars.EXIT);
         setMaze(mgMaze);
-
-        return mgMaze;
     }
 
     private void initializeLists() {
@@ -77,7 +74,6 @@ public class MazeGenerator extends MazeDetection {
         while (!currentPosList.contains(MazeVars.EXIT_POS) && failSafe < (MazeVars.MAZE_HEIGHT * MazeVars.MAZE_WIDTH)) {
             for (int path = 0; path < currentPosList.size(); path++) {
                 setMaze(mgMaze);
-                // printMaze();
                 failSafe++;
 
                 possibleHallwayPlacementCheck(path);
@@ -90,7 +86,7 @@ public class MazeGenerator extends MazeDetection {
                     directionChanceList.remove(path);
 
                     if (directionChanceList.size() == 0) {
-                        failSafe = (MazeVars.MAZE_HEIGHT * MazeVars.MAZE_WIDTH) * 2;
+                        failSafe = (MazeVars.MAZE_WIDTH * MazeVars.MAZE_HEIGHT) * 2;
                     }
 
                     break;
@@ -189,7 +185,7 @@ public class MazeGenerator extends MazeDetection {
         currentPosList.remove(path);
         currentPosList.add(path, currentPos);
 
-        mgMaze[currentPos.getX()][currentPos.getY()] = MazeVars.HALLWAY;
+        mgMaze[currentPos.getX()][currentPos.getY()].setTileType(MazeVars.HALLWAY);
     }
 
     private void possibleHallwayPlacementCheck(int path) {
@@ -235,9 +231,5 @@ public class MazeGenerator extends MazeDetection {
 
         directionChanceList.remove(path);
         directionChanceList.add(path, directionChance);
-    }
-
-    public String toString() {
-        return super.toString();
     }
 }

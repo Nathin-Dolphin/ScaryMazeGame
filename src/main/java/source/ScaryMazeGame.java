@@ -8,13 +8,8 @@
 package source;
 
 /**
- * <p>
- * <b>Known Issues:</b>
- * <p>
- *  - The player can sometimes see through walls.
- * 
  * @author Nathin Wascher
- * @version v0.2 - 6th of April, 2021
+ * @version v0.3 - April 9, 2021
  */
 public final class ScaryMazeGame {
 

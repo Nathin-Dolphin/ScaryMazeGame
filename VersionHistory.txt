@@ -1,5 +1,11 @@
 ScaryMazeGame
 
+v0.3
+ - Upgraded the visuals from strings to graphics
+ - Player vision has been optimized
+ - The string symbols representing what a tile is suppposed to be (ex. like a wall or hallway) has been changed to characters
+ - Each tile is now its own object (Mazetile) instead of just a letter
+
 v0.2
  - Added a prototype fog of war to the player
  - Most static and final variables have been moved to the class MazeVars
@@ -8,7 +14,7 @@ v0.2
 v0.1.1
  - The player character is now controllable with the 'WASD' and arrow controls
  - Optimized some variables and methods
- - Fixed x and y values for the maze are now correct
+ - The x and y values for the maze are now correct
 
 v0.1
  - The 'maze' generates a path from the top left corner to the bottom left corner

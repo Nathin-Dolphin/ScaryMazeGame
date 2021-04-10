@@ -7,8 +7,6 @@
 
 package source;
 
-import java.awt.Font;
-
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -20,17 +18,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.JTextArea;
-
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-
 import source.utility.SimpleFrame;
 
 /**
  * @author Nathin Wascher
  */
-public class ScaryMazeGameWindow implements DocumentListener {
+public class ScaryMazeGameWindow {
+
     private static final SimpleFrame FRAME = new SimpleFrame("ScaryMazeGame", "Spooky Maze");
 
     private static final MazeGenerator MAZE_GEN = new MazeGenerator();
@@ -47,8 +41,6 @@ public class ScaryMazeGameWindow implements DocumentListener {
 
     private static KeyListener keyListener;
 
-    private static JTextArea textArea;
-
     /**
      * 
      */
@@ -64,18 +56,14 @@ public class ScaryMazeGameWindow implements DocumentListener {
     }
 
     private void generateMaze() {
-        int[] westOfExit = new int[] { MazeVars.MAZE_WIDTH - 2, MazeVars.MAZE_HEIGHT - 1 };
-        int[] northOfExit = new int[] { MazeVars.MAZE_WIDTH - 1, MazeVars.MAZE_HEIGHT - 2 };
         int failSafe = 0;
 
         do {
             MAZE_GEN.generateMaze();
             failSafe++;
+            // System.out.println(MAZE_GEN.toString());
 
-            // TODO: make the while loop more readable
-        } while (MAZE_GEN.getMaze()[westOfExit[0]][westOfExit[1]].equals(MazeVars.WALL)
-                && MAZE_GEN.getMaze()[northOfExit[0]][northOfExit[1]].equals(MazeVars.WALL)
-                && failSafe <= FAILSAFE_NUM);
+        } while (!MAZE_GEN.isValidMaze() && failSafe <= FAILSAFE_NUM);
 
         playerAI.initializePlayerAI(MAZE_GEN.getStartLocation());
         // have the monster initially spawn next to the exit
@@ -99,15 +87,10 @@ public class ScaryMazeGameWindow implements DocumentListener {
     }
 
     private void setUpFrame() {
-        textArea = new JTextArea(playerAI.getMazeWithFogOfWar());
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 5 * 3));
-
-        // textArea.getDocument().addDocumentListener(this);
-        textArea.addKeyListener(keyListener);
-
-        FRAME.add(textArea);
+        FRAME.add(playerAI.initializeFogOfWar());
+        FRAME.addKeyListener(keyListener);
         FRAME.addWindowListener(windowListener);
-        FRAME.setFullscreen(true);
+        FRAME.setFullscreen(true); // TODO: Does not go in fullscreen
         FRAME.setVisible(true);
     }
 
@@ -121,8 +104,8 @@ public class ScaryMazeGameWindow implements DocumentListener {
             executorService.shutdown();
 
         } else {
-            textArea.setText(playerAI.getMazeWithFogOfWar());
-            System.out.println(playerAI.toString());
+            playerAI.updateFogOfWar();
+            // System.out.println(playerAI.toString());
         }
         System.out.println("game updated");
     }
@@ -157,17 +140,5 @@ public class ScaryMazeGameWindow implements DocumentListener {
             // TODO: check if space is exit here?????
 
         }
-    }
-
-    @Override
-    public void insertUpdate(DocumentEvent e) {
-    }
-
-    @Override
-    public void removeUpdate(DocumentEvent e) {
-    }
-
-    @Override
-    public void changedUpdate(DocumentEvent e) {
     }
 }

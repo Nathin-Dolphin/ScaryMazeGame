@@ -96,7 +96,9 @@
       <property name="allowMissingParamTags" value="true" />
       <property name="allowMissingReturnTag" value="true" />
     </module>
-    <module name="JavadocStyle" />
+    <module name="JavadocStyle">
+      <property name="endOfSentenceFormat" value="([.?!:][ \t\n\r\f])|([.?!:]$)" />
+    </module>
     <module name="JavadocType" />
     <module name="JavadocVariable">
       <property name="scope" value="protected" />
