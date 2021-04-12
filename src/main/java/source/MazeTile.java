@@ -161,7 +161,11 @@ public class MazeTile extends JComponent {
         return isExit;
     }
 
-    public void setExit(boolean isExit) {
+    /**
+     * 
+     * @param isExit
+     */
+    public void setIsExit(boolean isExit) {
         if (compareTiles(MazeVars.HALLWAY)) {
             this.isExit = isExit;
             setTileColor();

@@ -79,7 +79,6 @@ public class MazeDetection {
     /**
      * 
      * @param locationToCheck
-     * @param direction
      * @param tileType
      * @return
      */
@@ -98,7 +97,6 @@ public class MazeDetection {
 
     /**
      * 
-     * @param tileType
      * @param direction
      * @return
      */
@@ -168,7 +166,8 @@ public class MazeDetection {
         }
     }
 
-    private void playerVision(OrderedPair currentPos, OrderedPair[] direction) {
+    private void playerVision(OrderedPair pointOfReference, OrderedPair[] direction) {
+        OrderedPair currentPos = pointOfReference;
         OrderedPair sidePos;
 
         for (int sidepath = 0; sidepath <= 2; sidepath = sidepath + 2) {

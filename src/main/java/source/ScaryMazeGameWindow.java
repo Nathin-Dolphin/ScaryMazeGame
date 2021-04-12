@@ -107,8 +107,8 @@ public class ScaryMazeGameWindow {
 
             if (playerAI.isDead() || playerAI.onExit()) {
                 // FRAME.removeKeyListener((keyListener));
-                // executorService.shutdown();
-                // System.out.println("Thread terminated");
+                executorService.shutdown();
+                System.out.println("Thread terminated");
             }
         }
     }
