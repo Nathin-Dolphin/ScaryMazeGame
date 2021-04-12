@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>source</groupId>
   <artifactId>ScaryMazeGame</artifactId>
-  <version>v0.3</version>
+  <version>v0.3.1</version>
   <properties>
     <maven.compiler.source>13</maven.compiler.source>
     <maven.compiler.target>13</maven.compiler.target>

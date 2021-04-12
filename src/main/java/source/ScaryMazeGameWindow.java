@@ -100,14 +100,17 @@ public class ScaryMazeGameWindow {
     }
 
     private static void gameUpdate() {
-        if (playerAI.isDead() || playerAI.getReachedExit()) {
-            executorService.shutdown();
-
-        } else {
+        if (!executorService.isShutdown()) {
             playerAI.updateFogOfWar();
+            System.out.println("game updated");
             // System.out.println(playerAI.toString());
+
+            if (playerAI.isDead() || playerAI.onExit()) {
+                // FRAME.removeKeyListener((keyListener));
+                // executorService.shutdown();
+                // System.out.println("Thread terminated");
+            }
         }
-        System.out.println("game updated");
     }
 
     private static void monsterUpdate() {
@@ -118,27 +121,24 @@ public class ScaryMazeGameWindow {
 
     private void playerUpdate(KeyEvent k) {
         if (k.getKeyCode() == KeyEvent.VK_UP || k.getKeyCode() == KeyEvent.VK_W) { // North
-            if (playerAI.moveCharacter(MazeVars.PLAYER, MazeVars.NORTH)) {
+            if (playerAI.moveCharacter(MazeVars.NORTH)) {
                 gameUpdate();
             }
 
         } else if (k.getKeyCode() == KeyEvent.VK_LEFT || k.getKeyCode() == KeyEvent.VK_A) { // West
-            if (playerAI.moveCharacter(MazeVars.PLAYER, MazeVars.WEST)) {
+            if (playerAI.moveCharacter(MazeVars.WEST)) {
                 gameUpdate();
             }
 
         } else if (k.getKeyCode() == KeyEvent.VK_DOWN || k.getKeyCode() == KeyEvent.VK_S) { // South
-            if (playerAI.moveCharacter(MazeVars.PLAYER, MazeVars.SOUTH)) {
+            if (playerAI.moveCharacter(MazeVars.SOUTH)) {
                 gameUpdate();
             }
-            // TODO: check if space is exit here?????
 
         } else if (k.getKeyCode() == KeyEvent.VK_RIGHT || k.getKeyCode() == KeyEvent.VK_D) { // East
-            if (playerAI.moveCharacter(MazeVars.PLAYER, MazeVars.EAST)) {
+            if (playerAI.moveCharacter(MazeVars.EAST)) {
                 gameUpdate();
             }
-            // TODO: check if space is exit here?????
-
         }
     }
 }

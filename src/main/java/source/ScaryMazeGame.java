@@ -9,7 +9,7 @@ package source;
 
 /**
  * @author Nathin Wascher
- * @version v0.3 - April 9, 2021
+ * @version v0.3.1 - April 12, 2021
  */
 public final class ScaryMazeGame {
 

@@ -13,14 +13,15 @@ import source.utility.OrderedPair;
  * @author Nathin Wascher
  */
 public class PlayerAI extends MazeDetection {
+
     private static boolean isDead;
-    private static boolean reachedExit;
 
     public PlayerAI() {
     }
 
     public void initializePlayerAI(OrderedPair playerLocation) {
         setCharacterLocation(playerLocation);
+        setCharacter("player");
     }
 
     public boolean isDead() {
@@ -29,13 +30,5 @@ public class PlayerAI extends MazeDetection {
 
     public void setIsDead(boolean isDead) {
         PlayerAI.isDead = isDead;
-    }
-
-    public boolean getReachedExit() {
-        return reachedExit;
-    }
-
-    public void setReachedExit(boolean reachedExit) {
-        PlayerAI.reachedExit = reachedExit;
     }
 }

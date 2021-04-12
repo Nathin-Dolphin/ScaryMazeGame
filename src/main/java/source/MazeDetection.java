@@ -21,8 +21,8 @@ import source.utility.OrderedPair;
  */
 public class MazeDetection {
 
-    private static final OrderedPair[] DIRECTIONS_LIST = new OrderedPair[] { MazeVars.EAST, MazeVars.NORTH, MazeVars.WEST,
-            MazeVars.SOUTH, MazeVars.EAST, MazeVars.NORTH };
+    private static final OrderedPair[] DIRECTIONS_LIST = new OrderedPair[] { MazeVars.EAST, MazeVars.NORTH,
+            MazeVars.WEST, MazeVars.SOUTH, MazeVars.EAST, MazeVars.NORTH };
 
     private static MazeTile[][] maze;
 
@@ -32,41 +32,11 @@ public class MazeDetection {
 
     private OrderedPair characterLocation;
 
+    private String character;
+
     private boolean outOfBounds;
 
     public MazeDetection() {
-    }
-
-    /**
-     * 
-     * @return
-     */
-    public OrderedPair getCharacterLocation() {
-        return characterLocation;
-    }
-
-    /**
-     * 
-     * @param characterLocation
-     */
-    public void setCharacterLocation(OrderedPair characterLocation) {
-        this.characterLocation = characterLocation;
-    }
-
-    /**
-     * 
-     * @return
-     */
-    public MazeTile[][] getMaze() {
-        return maze;
-    }
-
-    /**
-     * 
-     * @param maze
-     */
-    public void setMaze(MazeTile[][] maze) {
-        MazeDetection.maze = maze;
     }
 
     /**
@@ -90,14 +60,14 @@ public class MazeDetection {
 
     /**
      * 
-     * @param currentPos
-     * @param area
+     * @param pointOfReference
+     * @param areaToCheck
      * @param tileType
      * @return
      */
-    public boolean locationCheck(OrderedPair currentPos, OrderedPair[] area, char tileType) {
-        for (int i = 0; i < area.length; i++) {
-            if (!locationCheck(currentPos, area[i], tileType)) {
+    public boolean locationCheck(OrderedPair pointOfReference, OrderedPair[] areaToCheck, char tileType) {
+        for (int i = 0; i < areaToCheck.length; i++) {
+            if (!locationCheck(pointOfReference.add(areaToCheck[i]), tileType)) {
                 if (!outOfBounds) {
                     return false;
                 }
@@ -108,17 +78,16 @@ public class MazeDetection {
 
     /**
      * 
-     * @param currentPos
+     * @param locationToCheck
      * @param direction
      * @param tileType
      * @return
      */
-    public boolean locationCheck(OrderedPair currentPos, OrderedPair direction, char tileType) {
+    public boolean locationCheck(OrderedPair locationToCheck, char tileType) {
         outOfBounds = false;
 
         try {
-            OrderedPair newPosition = currentPos.add(direction);
-            if (maze[newPosition.getX()][newPosition.getY()].compareTiles(tileType)) {
+            if (maze[locationToCheck.getX()][locationToCheck.getY()].compareTiles(tileType)) {
                 return true;
             }
         } catch (IndexOutOfBoundsException i) {
@@ -129,35 +98,16 @@ public class MazeDetection {
 
     /**
      * 
-     * @param currentPos
-     * @param xAxis
-     * @param yAxis
-     * @param tileType
-     * @return
-     */
-    public boolean locationCheck(OrderedPair currentPos, int xAxis, int yAxis, char tileType) {
-        try {
-            OrderedPair newPosition = currentPos.add(xAxis, yAxis);
-            if (maze[newPosition.getX()][newPosition.getY()].compareTiles(tileType)) {
-                return true;
-            }
-        } catch (IndexOutOfBoundsException i) {
-        }
-        return false;
-    }
-
-    /**
-     * 
      * @param tileType
      * @param direction
      * @return
      */
-    public boolean moveCharacter(char tileType, OrderedPair direction) {
-        if (locationCheck(characterLocation, direction, MazeVars.HALLWAY)) {
+    public boolean moveCharacter(OrderedPair direction) {
+        if (locationCheck(characterLocation.add(direction), MazeVars.HALLWAY)) {
 
-            maze[characterLocation.getX()][characterLocation.getY()].setTileType(MazeVars.HALLWAY);
+            maze[characterLocation.getX()][characterLocation.getY()].setIsPlayer(false);
             characterLocation = characterLocation.add(direction);
-            maze[characterLocation.getX()][characterLocation.getY()].setTileType(tileType);
+            maze[characterLocation.getX()][characterLocation.getY()].setIsPlayer(true);
 
             return true;
         }
@@ -198,42 +148,104 @@ public class MazeDetection {
     public void updateFogOfWar() {
         OrderedPair[] direction = new OrderedPair[3];
         OrderedPair currentPos;
-        OrderedPair sidePos;
 
-        for (int q = 0; q < tilesVisibleToPlayer.size(); q++) {
-            currentPos = tilesVisibleToPlayer.get(q);
+        for (int index = 0; index < tilesVisibleToPlayer.size(); index++) {
+            currentPos = tilesVisibleToPlayer.get(index);
             maze[currentPos.getX()][currentPos.getY()].setVisibleToPlayer(false);
         }
-
         tilesVisibleToPlayer.clear();
 
-        for (int t = 1; t < DIRECTIONS_LIST.length - 1; t++) {
+        for (int listIndex = 1; listIndex < DIRECTIONS_LIST.length - 1; listIndex++) {
             currentPos = characterLocation;
 
-            for (int f = 0; f < direction.length; f++) {
-                direction[f] = DIRECTIONS_LIST[f + (t - 1)];
+            for (int arrayIndex = 0; arrayIndex < direction.length; arrayIndex++) {
+                direction[arrayIndex] = DIRECTIONS_LIST[arrayIndex + (listIndex - 1)];
             }
 
-            while (locationCheck(currentPos, direction[1], MazeVars.HALLWAY) && !outOfBounds) {
-                if (!outOfBounds) { // TODO: Necessary ???
-                    currentPos = currentPos.add(direction[1]);
-                    maze[currentPos.getX()][currentPos.getY()].setVisibleToPlayer(true);
-                    tilesVisibleToPlayer.add(currentPos);
+            if (locationCheck(currentPos.add(direction[1]), MazeVars.HALLWAY) && !outOfBounds) {
+                playerVision(currentPos, direction);
+            }
+        }
+    }
 
-                    if (locationCheck(currentPos, direction[0], MazeVars.HALLWAY)) {
-                        sidePos = currentPos.add(direction[0]);
-                        maze[sidePos.getX()][sidePos.getY()].setVisibleToPlayer(true);
-                        tilesVisibleToPlayer.add(sidePos);
-                    }
+    private void playerVision(OrderedPair currentPos, OrderedPair[] direction) {
+        OrderedPair sidePos;
 
-                    if (locationCheck(currentPos, direction[2], MazeVars.HALLWAY)) {
-                        sidePos = currentPos.add(direction[2]);
-                        maze[sidePos.getX()][sidePos.getY()].setVisibleToPlayer(true);
-                        tilesVisibleToPlayer.add(sidePos);
-                    }
+        for (int sidepath = 0; sidepath <= 2; sidepath = sidepath + 2) {
+            sidePos = currentPos.add(direction[1].add(direction[sidepath]));
+
+            while (locationCheck(sidePos, MazeVars.HALLWAY)) {
+                maze[sidePos.getX()][sidePos.getY()].setVisibleToPlayer(true);
+                tilesVisibleToPlayer.add(sidePos);
+                sidePos = sidePos.add(direction[sidepath]);
+            }
+        }
+
+        while (locationCheck(currentPos.add(direction[1]), MazeVars.HALLWAY) && !outOfBounds) {
+            currentPos = currentPos.add(direction[1]);
+            maze[currentPos.getX()][currentPos.getY()].setVisibleToPlayer(true);
+            tilesVisibleToPlayer.add(currentPos);
+
+            for (int sidepath = 0; sidepath <= 2; sidepath = sidepath + 2) {
+                sidePos = currentPos.add(direction[sidepath]);
+
+                if (locationCheck(sidePos, MazeVars.HALLWAY)) {
+                    maze[sidePos.getX()][sidePos.getY()].setVisibleToPlayer(true);
+                    tilesVisibleToPlayer.add(sidePos);
                 }
             }
         }
+    }
+
+    /**
+     * 
+     * @return Returns true if the character is on the exit and false otherwise.
+     */
+    public boolean onExit() {
+        if (maze[characterLocation.getX()][characterLocation.getY()].isExit()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public OrderedPair getCharacterLocation() {
+        return characterLocation;
+    }
+
+    /**
+     * 
+     * @param characterLocation
+     */
+    public void setCharacterLocation(OrderedPair characterLocation) {
+        this.characterLocation = characterLocation;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public MazeTile[][] getMaze() {
+        return maze;
+    }
+
+    /**
+     * 
+     * @param maze
+     */
+    public void setMaze(MazeTile[][] maze) {
+        MazeDetection.maze = maze;
+    }
+
+    public String getCharacter() {
+        return character;
+    }
+
+    public void setCharacter(String character) {
+        this.character = character;
     }
 
     @Override

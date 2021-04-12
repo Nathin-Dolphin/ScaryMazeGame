@@ -21,18 +21,18 @@ public class MazeTile extends JComponent {
      */
     private static final long serialVersionUID = -8218783969461452328L;
 
+    private static final char PLAYER = 'P';
+
+    private static final char MONSTER = '&';
+
+    private static final char EXIT = 'X';
+
     /**
      * TileType is only allowed to be one of the following:
      * <p>
      * {@code MazeVars.WALL}
      * <p>
      * {@code MazeVars.HALLWAY}
-     * <p>
-     * {@code MazeVars.PLAYER}
-     * <p>
-     * {@code MazeVars.MONSTER}
-     * <p>
-     * {@code MazeVars.EXIT}
      */
     private char tileType;
 
@@ -49,9 +49,10 @@ public class MazeTile extends JComponent {
 
     // private boolean visibleToMonster;
 
+    private boolean isExit;
+
     public MazeTile(char tileType) throws InvalidTileTypeException {
-        this.tileType = tileType;
-        setTileColor();
+        changeTile(tileType);
     }
 
     /**
@@ -72,28 +73,26 @@ public class MazeTile extends JComponent {
             break;
 
         case MazeVars.HALLWAY:
-            if (visibleToPlayer) {
+            if (isPlayer) {
+                tileColor = MazeVars.PLAYER_COLOR;
+            } else if (isExit) {
+                tileColor = MazeVars.EXIT_COLOR;
+            } else if (visibleToPlayer) {
                 tileColor = MazeVars.HALLWAY_COLOR;
             } else {
                 tileColor = MazeVars.WALL_COLOR;
             }
             break;
 
-        case MazeVars.PLAYER:
-            tileColor = MazeVars.PLAYER_COLOR;
-            break;
-
-        case MazeVars.MONSTER:
-            tileColor = MazeVars.MONSTER_COLOR;
-            break;
-
-        case MazeVars.EXIT:
-            tileColor = MazeVars.EXIT_COLOR;
-            break;
-
         default:
             throw new InvalidTileTypeException("" + tileType);
         }
+        repaint();
+    }
+
+    private void changeTile(char tile) throws InvalidTileTypeException {
+        this.tileType = tile;
+        setTileColor();
     }
 
     /**
@@ -108,16 +107,19 @@ public class MazeTile extends JComponent {
         return false;
     }
 
-    private void changeTile(char tile) throws InvalidTileTypeException {
-        this.tileType = tile;
-        setTileColor();
-        repaint();
-    }
-
     public char getTileType() {
         return tileType;
     }
 
+    /**
+     * Only use this method to change the tile to a wall or hallway. To change
+     * what character is on this tile, use {@code setIsPlayer(bool)}.
+     * 
+     * @param tileType
+     * @throws InvalidTileTypeException
+     * 
+     * @see #setIsPlayer(boolean isPLayer)
+     */
     public void setTileType(char tileType) throws InvalidTileTypeException {
         changeTile(tileType);
     }
@@ -132,13 +134,10 @@ public class MazeTile extends JComponent {
      * @throws InvalidTileTypeException
      */
     public void setIsPlayer(boolean isPlayer) throws InvalidTileTypeException {
-        if (!this.isPlayer && compareTiles(MazeVars.HALLWAY)) {
+        if (compareTiles(MazeVars.HALLWAY)) {
             this.isPlayer = isPlayer;
-            changeTile(MazeVars.PLAYER);
-
-        } else if (this.isPlayer) {
-            this.isPlayer = isPlayer;
-            changeTile(MazeVars.HALLWAY);
+            visibleToPlayer = true;
+            setTileColor();
         }
     }
 
@@ -154,14 +153,36 @@ public class MazeTile extends JComponent {
     public void setVisibleToPlayer(boolean visibleToPlayer) throws InvalidTileTypeException {
         if (compareTiles(MazeVars.HALLWAY)) {
             this.visibleToPlayer = visibleToPlayer;
-            changeTile(MazeVars.HALLWAY);
+            setTileColor();
+        }
+    }
+
+    public boolean isExit() {
+        return isExit;
+    }
+
+    public void setExit(boolean isExit) {
+        if (compareTiles(MazeVars.HALLWAY)) {
+            this.isExit = isExit;
+            setTileColor();
         }
     }
 
     @Override
     public String toString() {
+        char tile;
+
+        if (isPlayer) {
+            tile = PLAYER;
+        } else if (isExit) {
+            tile = EXIT;
+        } else {
+            tile = tileType;
+        }
+
         String rgbString = "(" + tileColor.getRed() + ", " + tileColor.getGreen() + ", " + tileColor.getBlue() + ")";
-        return tileType + ":" + rgbString;
+
+        return tile + ":" + rgbString;
     }
 
     @SuppressWarnings("serial")

@@ -118,19 +118,7 @@ public final class MazeVars {
          */
         public static final char HALLWAY = '░';
 
-        /**
-         */
-        public static final char PLAYER = 'P';
-
-        /**
-         */
-        public static final char MONSTER = '&';
-
-        /**
-         */
-        public static final char EXIT = 'X';
-
-        // TODO: create maze array here
+        // TODO: create maze array here???
 
         private MazeVars() {
         }

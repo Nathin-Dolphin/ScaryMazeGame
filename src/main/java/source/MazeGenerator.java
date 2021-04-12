@@ -51,8 +51,10 @@ public class MazeGenerator extends MazeDetection {
         initializeLists();
         createMainPath();
 
-        mgMaze[0][0].setTileType(MazeVars.PLAYER);
-        mgMaze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setTileType(MazeVars.EXIT);
+        mgMaze[0][0].setTileType(MazeVars.HALLWAY);
+        mgMaze[0][0].setIsPlayer(true);
+        mgMaze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setTileType(MazeVars.HALLWAY);
+        mgMaze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setExit(true);
         setMaze(mgMaze);
     }
 
