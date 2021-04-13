@@ -36,7 +36,9 @@
     <module name="HideUtilityClassConstructor" />
     <module name="InterfaceIsType" />
     <module name="OneTopLevelClass" />
-    <module name="VisibilityModifier" />
+    <module name="VisibilityModifier">
+      <property name="protectedAllowed" value="true" />
+    </module>
     <!-- Coding -->
     <module name="CovariantEquals" />
     <module name="DeclarationOrder" />

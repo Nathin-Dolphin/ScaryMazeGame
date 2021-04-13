@@ -1,5 +1,13 @@
 ScaryMazeGame
 
+v0.3.2
+ - BIG NEWS, IT'S ACTUALLY A MAZE NOW!!!
+ - There is a rumor that a monster has been sighted in the maze, Or it might just be a statue
+ - Threading has been implemented for the monster
+ - Methods in PlayerAI, MonsterAI, and MazeDetection have been reorganized
+ - The maze now shows hallways as discovered (gray) if the player does not have line of sight to them
+ - Slight improvement to line of sight
+
 v0.3.1
  - Improved player vision
  - Tiles can now only be either a wall or hallway

@@ -96,11 +96,19 @@ public final class MazeVars {
 
         /**
          */
-        public static final Color HALLWAY_COLOR = Color.WHITE;
+        public static final Color HALL_COLOR = Color.WHITE;
 
         /**
          */
-        public static final Color PLAYER_COLOR = Color.BLUE;
+        // public static final Color PARTIAL_HALL_COLOR = Color.LIGHT_GRAY;
+
+        /**
+         */
+        public static final Color REMEMBER_HALL_COLOR = Color.GRAY;
+
+        /**
+         */
+        public static final Color PLAYER_COLOR = Color.GREEN;
 
         /**
          */
@@ -108,7 +116,7 @@ public final class MazeVars {
 
         /**
          */
-        public static final Color EXIT_COLOR = Color.GREEN;
+        public static final Color EXIT_COLOR = Color.BLUE;
 
         /**
          */
@@ -118,9 +126,6 @@ public final class MazeVars {
          */
         public static final char HALLWAY = '░';
 
-        // TODO: create maze array here???
-
         private MazeVars() {
         }
-
 }

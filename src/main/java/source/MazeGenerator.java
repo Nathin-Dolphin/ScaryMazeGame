@@ -18,16 +18,15 @@ import source.utility.RandomGen;
 public class MazeGenerator extends MazeDetection {
     private static final RandomGen GEN = new RandomGen();
 
-    private static final int SIDE_PATH_CHANCE = 15;
+    // Smaller numbers increase the chance of an attempt to spawn a side path
+    private static final int SIDE_PATH_CHANCE = 5;
 
     private static LinkedList<LinkedList<String>> directionChanceList;
 
     private static LinkedList<OrderedPair> currentPosList;
 
-    private static MazeTile[][] mgMaze;
-
     public MazeGenerator() {
-        mgMaze = new MazeTile[MazeVars.MAZE_WIDTH][MazeVars.MAZE_HEIGHT];
+        maze = new MazeTile[MazeVars.MAZE_WIDTH][MazeVars.MAZE_HEIGHT];
     }
 
     public OrderedPair getStartLocation() {
@@ -44,18 +43,19 @@ public class MazeGenerator extends MazeDetection {
     public void generateMaze() {
         for (int w = 0; w < MazeVars.MAZE_WIDTH; w++) {
             for (int h = 0; h < MazeVars.MAZE_HEIGHT; h++) {
-                mgMaze[w][h] = new MazeTile(MazeVars.WALL);
+                maze[w][h] = new MazeTile(MazeVars.WALL);
             }
         }
 
         initializeLists();
         createMainPath();
 
-        mgMaze[0][0].setTileType(MazeVars.HALLWAY);
-        mgMaze[0][0].setIsPlayer(true);
-        mgMaze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setTileType(MazeVars.HALLWAY);
-        mgMaze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setIsExit(true);
-        setMaze(mgMaze);
+        maze[0][0].setTileType(MazeVars.HALLWAY);
+        maze[0][0].setIsPlayer(true);
+
+        maze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setTileType(MazeVars.HALLWAY);
+        maze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setIsExit(true);
+        maze[MazeVars.MAZE_WIDTH - 1][MazeVars.MAZE_HEIGHT - 1].setIsMonster(true);
     }
 
     private void initializeLists() {
@@ -75,7 +75,6 @@ public class MazeGenerator extends MazeDetection {
 
         while (!currentPosList.contains(MazeVars.EXIT_POS) && failSafe < (MazeVars.MAZE_HEIGHT * MazeVars.MAZE_WIDTH)) {
             for (int path = 0; path < currentPosList.size(); path++) {
-                setMaze(mgMaze);
                 failSafe++;
 
                 possibleHallwayPlacementCheck(path);
@@ -119,8 +118,7 @@ public class MazeGenerator extends MazeDetection {
                     System.out.println("\nERROR: \'" + direction + "\' IS NOT A VALID DIRECTION ");
                 }
 
-                // Disabled
-                if (GEN.intGen(0, SIDE_PATH_CHANCE) == -1) {
+                if (GEN.intGen(0, SIDE_PATH_CHANCE) == 0) {
                     createSidePath(path);
                 }
             }
@@ -187,17 +185,16 @@ public class MazeGenerator extends MazeDetection {
         currentPosList.remove(path);
         currentPosList.add(path, currentPos);
 
-        mgMaze[currentPos.getX()][currentPos.getY()].setTileType(MazeVars.HALLWAY);
+        maze[currentPos.getX()][currentPos.getY()].setTileType(MazeVars.HALLWAY);
     }
 
     private void possibleHallwayPlacementCheck(int path) {
         OrderedPair currentPos = currentPosList.get(path);
         LinkedList<String> directionChance = new LinkedList<String>();
 
-        // The first 'if' statement detects if the location to chack is inside the
-        // boundaries of the maze. The second 'if' checks if it is a MazeVars.wall and
-        // if so add
-        // the appropriate direction to the 'chanceList'
+        // The first 'if' statement detects if the location to check is inside the
+        // boundaries of the maze. The second 'if' checks if it is a MazeVars.WALL tile
+        // and if so add the appropriate direction to the 'chanceList'
         if (0 <= currentPos.getY() - 1) {
             if (locationCheck(currentPos, MazeVars.NORTH_CHECK, MazeVars.WALL)) { // North
                 for (int i = 0; i < 2; i++) {

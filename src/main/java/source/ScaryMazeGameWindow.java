@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 import source.utility.SimpleFrame;
 
+// TODO: add comments to everything
+
 /**
  * @author Nathin Wascher
  */
@@ -33,7 +35,7 @@ public class ScaryMazeGameWindow {
 
     private static PlayerAI playerAI;
 
-    // private static MonsterAI monsterAI;
+    private static MonsterAI monsterAI;
 
     private static ScheduledExecutorService executorService;
 
@@ -46,7 +48,7 @@ public class ScaryMazeGameWindow {
      */
     public ScaryMazeGameWindow() {
         playerAI = new PlayerAI();
-        // monsterAI = new MonsterAI();
+        monsterAI = new MonsterAI();
 
         generateMaze();
         implementListeners();
@@ -66,8 +68,7 @@ public class ScaryMazeGameWindow {
         } while (!MAZE_GEN.isValidMaze() && failSafe <= FAILSAFE_NUM);
 
         playerAI.initializePlayerAI(MAZE_GEN.getStartLocation());
-        // have the monster initially spawn next to the exit
-        // monsterAI.initializeMonsterAI(mazeGen.getExitLocation());
+        monsterAI.initializeMonsterAI(MAZE_GEN.getExitLocation());
 
         System.out.println(MAZE_GEN.toString());
     }
@@ -95,49 +96,47 @@ public class ScaryMazeGameWindow {
     }
 
     private void startGame() {
-        executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(ScaryMazeGameWindow::monsterUpdate, 1, 1, TimeUnit.SECONDS);
     }
 
-    private static void gameUpdate() {
-        if (!executorService.isShutdown()) {
-            playerAI.updateFogOfWar();
-            System.out.println("game updated");
-            // System.out.println(playerAI.toString());
+    private static void gameUpdate(String caller) {
+        playerAI.updateFogOfWar();
+        System.out.print("\n" + caller + ":game updated");
+        // System.out.println(playerAI.toString());
 
-            if (playerAI.isDead() || playerAI.onExit()) {
-                // FRAME.removeKeyListener((keyListener));
-                executorService.shutdown();
-                System.out.println("Thread terminated");
-            }
+        if (playerAI.isPlayerDead() || playerAI.onExit()) {
+            // FRAME.removeKeyListener((keyListener));
+            executorService.shutdown();
+            System.out.print("\tthread terminated");
         }
     }
 
     private static void monsterUpdate() {
-        // if (monsterAI.moveMonster()) {
-        // gameUpdate();
-        // }
+        if (monsterAI.moveMonster()) {
+            gameUpdate("monster");
+        }
     }
 
     private void playerUpdate(KeyEvent k) {
         if (k.getKeyCode() == KeyEvent.VK_UP || k.getKeyCode() == KeyEvent.VK_W) { // North
-            if (playerAI.moveCharacter(MazeVars.NORTH)) {
-                gameUpdate();
+            if (playerAI.movePlayer(MazeVars.NORTH)) {
+                gameUpdate("player");
             }
 
         } else if (k.getKeyCode() == KeyEvent.VK_LEFT || k.getKeyCode() == KeyEvent.VK_A) { // West
-            if (playerAI.moveCharacter(MazeVars.WEST)) {
-                gameUpdate();
+            if (playerAI.movePlayer(MazeVars.WEST)) {
+                gameUpdate("player");
             }
 
         } else if (k.getKeyCode() == KeyEvent.VK_DOWN || k.getKeyCode() == KeyEvent.VK_S) { // South
-            if (playerAI.moveCharacter(MazeVars.SOUTH)) {
-                gameUpdate();
+            if (playerAI.movePlayer(MazeVars.SOUTH)) {
+                gameUpdate("player");
             }
 
         } else if (k.getKeyCode() == KeyEvent.VK_RIGHT || k.getKeyCode() == KeyEvent.VK_D) { // East
-            if (playerAI.moveCharacter(MazeVars.EAST)) {
-                gameUpdate();
+            if (playerAI.movePlayer(MazeVars.EAST)) {
+                gameUpdate("player");
             }
         }
     }
